@@ -3,22 +3,30 @@
 #include <string.h>
 #include "interface.h"
 #include <stdint.h>
-#include "client_outputs.h"
 #include "global.h"
+#include "client_outputs.h"
 #include "client_network.h"
 
-#define TRUE 1
-#define FALSE 0
-
 uint8_t connected = FALSE;
+struct client client;
 
 void parse_command(char *command){
     if(strcmp(command, "exit") == 0){
+        if(connected){
+            disconnect(&client);
+        }
+
         close();
     } else if(strcmp(command, "help") == 0){
-        (connected ? connected_help() : disconnected_help());
-    } else if(strcmp(command, "connect")){
-        connect();
+        help(connected);
+    } else if(strcmp(command, "connect") == 0){
+        client.socketfd = connect_to_server(&client);
+    } else if(strcmp(command, "leave") == 0){
+        if(connected){
+            disconnect(&client);
+        } else {
+            cant_leave_when_not_connected();
+        }
     }
     else {
         invalid_command();

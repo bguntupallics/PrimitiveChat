@@ -5,6 +5,10 @@
 #ifndef PRIMITIVECHAT_CLIENT_NETWORK_H
 #define PRIMITIVECHAT_CLIENT_NETWORK_H
 
-int connect(void);
+#include "global.h"
+
+void disconnect(struct client *client);
+
+int connect_to_server(struct client *client);
 
 #endif //PRIMITIVECHAT_CLIENT_NETWORK_H

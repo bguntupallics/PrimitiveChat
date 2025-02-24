@@ -5,6 +5,8 @@
 #ifndef PRIMITIVECHAT_INTERFACE_H
 #define PRIMITIVECHAT_INTERFACE_H
 
+void parse_command(char *command);
+
 void run(void);
 
 #endif

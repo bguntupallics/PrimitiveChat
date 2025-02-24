@@ -16,14 +16,20 @@
 #include <ctype.h>
 #include "global.h"
 
-int connect(void) {
+void disconnect(struct client *client) {
+    close(client->socketfd);
+    memset(client, 0, sizeof(struct client));
+}
+
+int connect_to_server(struct client *client) {
     struct sockaddr_in server;
     enum COMMAND command;
+    struct name_packet welcome_packet;
     int connectfd, socketfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    server.sin_addr = "127.0.0.1";
+    inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
     server.sin_port = htons(45556);
-    server.sin_addr = AF_INET;
+    server.sin_family = AF_INET;
 
     connectfd = connect(socketfd, (struct sockaddr *)&server, sizeof(server));
     if(connectfd != 0){
@@ -33,8 +39,15 @@ int connect(void) {
     command = CONNECT;
 
     send(socketfd, &command, sizeof(command), 0);
-    recv(socketfd, &packet, sizeof(packet), 0);
+    recv(socketfd, &command, sizeof(command), 0);
+    if(command != ACK){
+        perror("Error connecting to server. Closing connection. \n");
+        close(socketfd);
+        return ERROR;
+    } else {
+        recv(socketfd, &welcome_packet, sizeof(welcome_packet), 0);
+    }
 
-    printf("Connected to Server. Your name is \"%s\"\n", packet.name);
+    printf("Connected to Server. Your name is \"%s\"\n", welcome_packet.name);
     return socketfd;
 }
