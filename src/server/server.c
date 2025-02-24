@@ -11,12 +11,13 @@
 #include "global.h"
 #include "server_network.h"
 
-#define MAX_CLIENTS 64
-
 struct manager manager;
 
 void run(int socket_fd) {
     manager.master_socket = socket_fd;
+
+    printf("Starting Server... Press CTRL + C to Quit. \n");
+    server_loop(&manager);
 }
 
 int main() {

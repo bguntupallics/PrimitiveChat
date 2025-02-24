@@ -28,9 +28,16 @@ int init(void) {
 
     bind_fd = bind(socket_fd, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
     if(bind_fd != 0){
-        perror("Line 204: bind()");
+        perror("bind()");
         exit(EXIT_FAILURE);
     }
 
     return socket_fd;
+}
+
+void server_loop(struct manager *manager) {
+
+    for(;;){
+
+    }
 }

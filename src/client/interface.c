@@ -20,7 +20,7 @@ void parse_command(char *command){
     } else if(strcmp(command, "help") == 0){
         help(connected);
     } else if(strcmp(command, "connect") == 0){
-        client.socketfd = connect_to_server(&client);
+        client.socketfd = connect_to_server(&client, &connected);
     } else if(strcmp(command, "leave") == 0){
         if(connected){
             disconnect(&client);

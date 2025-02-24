@@ -21,7 +21,7 @@ void disconnect(struct client *client) {
     memset(client, 0, sizeof(struct client));
 }
 
-int connect_to_server(struct client *client) {
+int connect_to_server(struct client *client, uint8_t *connected) {
     struct sockaddr_in server;
     enum COMMAND command;
     struct name_packet welcome_packet;
@@ -48,6 +48,8 @@ int connect_to_server(struct client *client) {
         recv(socketfd, &welcome_packet, sizeof(welcome_packet), 0);
     }
 
+    strcpy(client->nickname, welcome_packet.name);
     printf("Connected to Server. Your name is \"%s\"\n", welcome_packet.name);
+    *connected = TRUE;
     return socketfd;
 }

@@ -5,6 +5,10 @@
 #ifndef PRIMITIVECHAT_SERVER_NETWORK_H
 #define PRIMITIVECHAT_SERVER_NETWORK_H
 
+#include "global.h"
+
 int init(void);
+
+void server_loop(struct manager *manager);
 
 #endif //PRIMITIVECHAT_SERVER_NETWORK_H
