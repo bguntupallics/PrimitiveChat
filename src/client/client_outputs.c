@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include "client_outputs.h"
 
-void help(void) {
-    printf("help -< shows a list of commands. \n");
-    printf("exit -< exits the program. \n");
+void disconnected_help(void) {
+    printf("help <- shows a list of commands. \n");
+    printf("exit <- exits the program. \n");
+    printf("connect <- connects to the server. \n");
+}
+
+void connected_help(void) {
+
 }
 
 void close(void) {

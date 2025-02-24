@@ -5,7 +5,9 @@
 #ifndef PRIMITIVECHAT_CLIENT_OUTPUTS_H
 #define PRIMITIVECHAT_CLIENT_OUTPUTS_H
 
-void help(void);
+void disconnected_help(void);
+
+void connected_help(void);
 
 void close(void);
 
