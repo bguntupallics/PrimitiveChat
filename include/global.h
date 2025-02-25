@@ -10,6 +10,7 @@
 #define FALSE 0
 #define ERROR (-1)
 #define MAX_CLIENTS 64
+#define PORT 45556
 
 // Command Enum
 enum COMMAND {

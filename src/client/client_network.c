@@ -8,12 +8,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdint.h>
 #include <sys/socket.h>
-#include <stddef.h>
-#include <netdb.h>
-#include <time.h>
-#include <ctype.h>
 #include "global.h"
 
 void disconnect(struct client *client) {
@@ -28,7 +23,7 @@ int connect_to_server(struct client *client, uint8_t *connected) {
     int connectfd, socketfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
-    server.sin_port = htons(45556);
+    server.sin_port = htons(PORT);
     server.sin_family = AF_INET;
 
     connectfd = connect(socketfd, (struct sockaddr *)&server, sizeof(server));
