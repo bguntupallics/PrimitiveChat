@@ -10,7 +10,7 @@ void run(struct manager *manager, struct sockaddr_in *serveraddr) {
     server_loop(manager, serveraddr);
 }
 
-int main() {
+int main(void) {
     struct manager manager;
     struct sockaddr_in severaddr;
 

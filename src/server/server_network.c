@@ -25,7 +25,7 @@ int init(struct sockaddr_in *serveraddr) {
     serveraddr->sin_port = htons(PORT);
     serveraddr->sin_family = AF_INET;
 
-    bind_fd = bind(socket_fd, serveraddr, sizeof(struct sockaddr_in));
+    bind_fd = bind(socket_fd, (const struct sockaddr *) serveraddr, sizeof(struct sockaddr_in));
     if(bind_fd != 0){
         perror("bind()");
         exit(EXIT_FAILURE);
