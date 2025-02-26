@@ -9,7 +9,7 @@ void help(int connected);
 
 void cant_leave_when_not_connected(void);
 
-void close(void);
+void close_program(void);
 
 void invalid_command(void);
 

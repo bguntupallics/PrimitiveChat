@@ -15,7 +15,7 @@ void parse_command(char *command){
             disconnect(&client);
         }
 
-        close();
+        close_program();
     } else if(strcmp(command, "help") == 0){
         help(connected);
     } else if(strcmp(command, "connect") == 0){

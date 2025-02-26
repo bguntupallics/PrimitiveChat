@@ -20,7 +20,7 @@ void cant_leave_when_not_connected(void) {
     printf("Not connected to a server. Type \"exit\" if you would like to close the application. \n");
 }
 
-void close(void) {
+void close_program(void) {
     printf("Thank You! See You Soon!\n");
     exit(0);
 }
