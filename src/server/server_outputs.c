@@ -23,3 +23,7 @@ void print_manager_struct(struct manager *manager) {
         printf("Name: %s, Socket: %d \n", manager->clients[i].nickname, manager->clients[i].socketfd);
     }
 }
+
+void print_heartbeat(const char *name) {
+    printf("Heartbeat Received from %s. \n", name);
+}

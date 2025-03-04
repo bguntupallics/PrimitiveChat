@@ -11,4 +11,6 @@ void print_new_client(const char *name);
 
 void print_manager_struct(struct manager *manager);
 
+void print_heartbeat(const char *name);
+
 #endif //PRIMITIVECHAT_SERVER_OUTPUTS_H

@@ -9,12 +9,37 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <pthread.h>
 #include "global.h"
 #include "client_outputs.h"
 
+volatile int heartbeat_running = 0;
+pthread_t heartbeat_thread;
+
+// The heartbeat loop function that runs in a separate thread.
+// It sends a "PING" message every HEARTBEAT_INTERVAL seconds.
+void *heartbeat_loop(void *arg) {
+    struct client *client = (struct client *) arg;
+    enum COMMAND heartbeat = HEARTBEAT;
+
+    while (heartbeat_running) {
+        if (send(client->socketfd, &heartbeat, sizeof(heartbeat), 0) < 0) {
+            perror("Heartbeat send failed");
+        }
+
+        sleep(HEARTBEAT_INTERVAL);
+    }
+    return NULL;
+}
+
 void disconnect(struct client *client) {
     enum COMMAND command = DISCONNECT;
+
     send(client->socketfd, &command, sizeof(enum COMMAND), 0);
+
+    heartbeat_running = 0;
+    pthread_join(heartbeat_thread, NULL);
+
     close(client->socketfd);
     memset(client, 0, sizeof(struct client));
     disconnected_from_server();
@@ -51,4 +76,10 @@ void connect_to_server(struct client *client, uint8_t *connected) {
     printf("Connected to Server. Your name is \"%s\"\n", welcome_packet.name);
     *connected = TRUE;
     client->socketfd = socketfd;
+
+    // Start the heartbeat thread upon successful connection
+    heartbeat_running = 1;
+    if (pthread_create(&heartbeat_thread, NULL, heartbeat_loop, client) != 0) {
+        perror("Failed to start heartbeat thread");
+    }
 }
