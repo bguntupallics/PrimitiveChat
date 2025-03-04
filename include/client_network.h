@@ -9,6 +9,6 @@
 
 void disconnect(struct client *client);
 
-int connect_to_server(struct client *client, uint8_t *connected);
+void connect_to_server(struct client *client, uint8_t *connected);
 
 #endif //PRIMITIVECHAT_CLIENT_NETWORK_H

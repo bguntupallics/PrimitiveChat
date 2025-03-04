@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Iinclude -Wall -Wextra -Wpedantic
-SERVERSRC = src/server/server.c src/server/server_network.c
+SERVERSRC = src/server/server.c src/server/server_network.c src/server/server_outputs.c
 CLIENTSRC = src/client/client.c src/client/interface.c src/client/client_outputs.c src/client/client_network.c
 client = bin/client
 server = bin/server

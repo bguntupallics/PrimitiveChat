@@ -13,4 +13,6 @@ void close_program(void);
 
 void invalid_command(void);
 
+void disconnected_from_server(void);
+
 #endif //PRIMITIVECHAT_CLIENT_OUTPUTS_H

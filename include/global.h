@@ -35,7 +35,6 @@ struct name_packet {
 
 struct client {
     char nickname[256];
-    struct room *room;
     double lifetime;
     int socketfd;
 };
