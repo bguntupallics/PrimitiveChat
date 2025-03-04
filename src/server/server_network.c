@@ -126,6 +126,19 @@ void remove_client(struct manager *manager, int index) {
     print_manager_struct(manager);
 }
 
+void send_list(struct manager *manager, int index) {
+    struct list_packet toSend;
+    int i;
+
+    toSend.num_users = manager->num_clients;
+    for(i = 0; i < manager->num_clients; i++) {
+        toSend.name_lengths[i] = strlen(manager->clients[i].nickname);
+        strcpy(toSend.user_names[i], manager->clients[i].nickname);
+    }
+
+    send(manager->clients[index].socketfd, &toSend, sizeof(toSend), 0);
+}
+
 void update_heartbeat(struct manager *manager, int index) {
     manager->clients[index].last_heartbeat = time(NULL);
     print_heartbeat(manager->clients[index].nickname);
@@ -147,6 +160,8 @@ void process_client_request(struct manager *manager, int index) {
             remove_client(manager, index);
         case HEARTBEAT:
             update_heartbeat(manager, index);
+        case LIST_USERS:
+            send_list(manager, index);
     }
 }
 

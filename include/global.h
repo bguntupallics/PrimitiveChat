@@ -12,32 +12,25 @@
 #define FALSE 0
 #define ERROR (-1)
 #define MAX_CLIENTS 64
+#define NAME_LENGTH 20
 #define PORT 45556
 #define HEARTBEAT_INTERVAL 5
 
 // Command Enum
 enum COMMAND {
-    CONNECT = 0x01,
-    QUIT = 0x00,
-    MESSAGE = 0x04,
-    ECHO = 0x05,
-    LIST_USERS = 0x08,
-    LIST_ROOMS = 0x09,
-    HEARTBEAT = 0x0B,
-    NICKNAME = 0x0C,
-    INVALID = 0x0D,
-    DISCONNECT = 0x0E,
-    ACK = 0x0F,
-};
-
-struct name_packet {
-    enum COMMAND response;
-    int name_length;
-    char name[256];
+    ACK = 0x01,
+    CONNECT = 0x02,
+    DISCONNECT = 0x03,
+    HEARTBEAT = 0x04,
+    LIST_USERS = 0x05,
+    NICKNAME = 0x06,
+    MESSAGE = 0x07,
+    ECHO = 0x08,
+    INVALID = 0x09,
 };
 
 struct client {
-    char nickname[256];
+    char nickname[NAME_LENGTH];
     time_t last_heartbeat;
     int socketfd;
 };
@@ -45,7 +38,19 @@ struct client {
 struct manager {
     int num_clients;
     int master_socket;
-    struct client clients[64];
+    struct client clients[MAX_CLIENTS];
+};
+
+struct list_packet {
+    int num_users;
+    int name_lengths[MAX_CLIENTS];
+    char user_names[MAX_CLIENTS][NAME_LENGTH];
+};
+
+struct name_packet {
+    enum COMMAND response;
+    int name_length;
+    char name[NAME_LENGTH];
 };
 
 #endif //PRIMITIVECHAT_GLOBAL_H

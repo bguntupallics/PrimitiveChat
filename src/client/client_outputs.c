@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "client_outputs.h"
+#include "global.h"
 
 void help(int connected) {
     printf("help <- shows a list of commands. \n");
@@ -29,6 +30,15 @@ void invalid_command(void) {
     printf("Invalid Command. Please Try Again. \n");
 }
 
-void disconnected_from_server(void){
+void disconnected_from_server(void) {
     printf("Disconnected from server. \n");
+}
+
+void print_users(struct list_packet *listPacket) {
+    int i;
+
+    printf("%d Active Users \nUsers: \n", listPacket->num_users);
+    for(i = 0; i < listPacket->num_users; i++) {
+        printf("%s \n", listPacket->user_names[i]);
+    }
 }

@@ -11,4 +11,6 @@ void disconnect(struct client *client);
 
 void connect_to_server(struct client *client, uint8_t *connected);
 
+void list_users(struct client *client);
+
 #endif //PRIMITIVECHAT_CLIENT_NETWORK_H

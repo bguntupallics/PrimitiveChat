@@ -18,18 +18,20 @@ void sigint_handler(int signum) {
     close_program();
 }
 
-void parse_command(char *command){
-    if(strcmp(command, "exit") == 0){
+void parse_command(char *command) {
+    if(strcmp(command, "exit") == 0) {
         if(connected){
             disconnect(&client);
         }
 
         close_program();
-    } else if(strcmp(command, "help") == 0){
+    } else if(strcmp(command, "help") == 0) {
         help(connected);
-    } else if(strcmp(command, "connect") == 0){
+    } else if(strcmp(command, "connect") == 0) {
         connect_to_server(&client, &connected);
-    } else if(strcmp(command, "leave") == 0){
+    } else if(strcmp(command, "list") == 0) {
+        list_users(&client);
+    } else if(strcmp(command, "leave") == 0) {
         if(connected){
             disconnect(&client);
         } else {
@@ -52,12 +54,10 @@ void run(void) {
 
     printf("Welcome to Primitive Chat! Type \"help\" for a list of commands ->\n");
 
-    for(;;){
+    for(;;) {
         printf("~ ");
         scanf("%s", command);
-
         parse_command(command);
-
         memset(&command, 0, strlen(command));
     }
 }
