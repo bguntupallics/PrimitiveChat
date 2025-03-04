@@ -28,3 +28,7 @@ void close_program(void) {
 void invalid_command(void) {
     printf("Invalid Command. Please Try Again. \n");
 }
+
+void disconnected_from_server(void){
+    printf("Disconnected from server. \n");
+}

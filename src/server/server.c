@@ -2,11 +2,12 @@
 #include <netinet/in.h>
 #include "global.h"
 #include "server_network.h"
+#include "server_outputs.h"
 
 void run(struct manager *manager, struct sockaddr_in *serveraddr) {
-    manager->master_socket = init(serveraddr);
+    init(manager, serveraddr);
 
-    printf("Starting Server... Press CTRL + C to Quit. \n");
+    print_init();
     server_loop(manager, serveraddr);
 }
 

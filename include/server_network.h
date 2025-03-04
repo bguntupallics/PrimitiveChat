@@ -7,11 +7,13 @@
 
 #include "global.h"
 
-int init(struct sockaddr_in *serveraddr);
+void init(struct manager *manager, struct sockaddr_in *serveraddr);
 
 void accept_client(struct manager *manager, struct sockaddr_in *serveraddr);
 
-void process_client_requests(struct manager *manager,fd_set readfds);
+void remove_client(struct manager *manager, int index);
+
+void process_client_request(struct manager *manager, int index);
 
 void server_loop(struct manager *manager, struct sockaddr_in *serveraddr);
 

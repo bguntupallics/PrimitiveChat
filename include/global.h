@@ -6,11 +6,14 @@
 #ifndef PRIMITIVECHAT_GLOBAL_H
 #define PRIMITIVECHAT_GLOBAL_H
 
+#include <time.h>
+
 #define TRUE 1
 #define FALSE 0
 #define ERROR (-1)
 #define MAX_CLIENTS 64
 #define PORT 45556
+#define HEARTBEAT_INTERVAL 5
 
 // Command Enum
 enum COMMAND {
@@ -20,7 +23,7 @@ enum COMMAND {
     ECHO = 0x05,
     LIST_USERS = 0x08,
     LIST_ROOMS = 0x09,
-    ALIVE = 0x0B,
+    HEARTBEAT = 0x0B,
     NICKNAME = 0x0C,
     INVALID = 0x0D,
     DISCONNECT = 0x0E,
@@ -35,8 +38,7 @@ struct name_packet {
 
 struct client {
     char nickname[256];
-    struct room *room;
-    double lifetime;
+    time_t last_heartbeat;
     int socketfd;
 };
 
