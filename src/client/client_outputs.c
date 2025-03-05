@@ -42,3 +42,11 @@ void print_users(struct list_packet *listPacket) {
         printf("%s \n", listPacket->user_names[i]);
     }
 }
+
+void successful_name_change(const char *name) {
+    printf("Successfully changed name to %s. \n", name);
+}
+
+void name_already_exists(const char *name) {
+    printf("%s already exists. Try another name. \n", name);
+}

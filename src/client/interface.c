@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include "interface.h"
 #include <stdlib.h>
+#include <signal.h>
 #include "global.h"
+#include "interface.h"
 #include "client_outputs.h"
 #include "client_network.h"
 
@@ -12,10 +13,18 @@ struct client client;
 void sigint_handler(int signum) {
     (void)signum; // avoid unused parameter warning
 
+    printf("\nClosing program... \n");
+
     if (connected) {
         disconnect(&client);
     }
     close_program();
+}
+
+void sigpipe_handler(int signum) {
+    (void)signum;
+
+    disconnect(&client);
 }
 
 void parse_command(char *command) {
@@ -31,14 +40,16 @@ void parse_command(char *command) {
         connect_to_server(&client, &connected);
     } else if(strcmp(command, "list") == 0) {
         list_users(&client);
-    } else if(strcmp(command, "leave") == 0) {
+    } else if(strcmp(command, "nickname") == 0) {
+        change_name(&client);
+    }
+    else if(strcmp(command, "leave") == 0) {
         if(connected){
             disconnect(&client);
         } else {
             cant_leave_when_not_connected();
         }
-    }
-    else {
+    } else {
         invalid_command();
     }
 }
@@ -49,6 +60,15 @@ void run(void) {
     // Install the SIGINT handler (Ctrl+C)
     if (signal(SIGINT, sigint_handler) == SIG_ERR) {
         perror("Error installing SIGINT handler");
+        exit(EXIT_FAILURE);
+    }
+
+    struct sigaction sa;
+    sa.sa_handler = sigpipe_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGPIPE, &sa, NULL) == -1) {
+        perror("sigaction");
         exit(EXIT_FAILURE);
     }
 

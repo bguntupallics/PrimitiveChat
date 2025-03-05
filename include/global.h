@@ -48,7 +48,6 @@ struct list_packet {
 };
 
 struct name_packet {
-    enum COMMAND response;
     int name_length;
     char name[NAME_LENGTH];
 };

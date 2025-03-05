@@ -85,11 +85,38 @@ void connect_to_server(struct client *client, uint8_t *connected) {
 }
 
 void list_users(struct client *client) {
-    struct list_packet listPacket;
+    struct list_packet list_packet;
     enum COMMAND command = LIST_USERS;
 
     send(client->socketfd, &command, sizeof(command), 0);
-    recv(client->socketfd, &listPacket, sizeof(listPacket), 0);
+    recv(client->socketfd, &list_packet, sizeof(list_packet), 0);
 
-    print_users(&listPacket);
+    print_users(&list_packet);
+}
+
+void change_name(struct client *client) {
+    struct name_packet name_packet;
+    enum COMMAND command = NICKNAME;
+    char new_name[20];
+    int count;
+
+    count = scanf("%s", new_name);
+    if (count != 1) {
+        printf("Error: 'nickname' command requires an argument.\n");
+        return;
+    }
+
+    strcpy(name_packet.name, new_name);
+    name_packet.name_length = strlen(new_name);
+
+    send(client->socketfd, &command, sizeof(command), 0);
+
+    send(client->socketfd, &name_packet, sizeof(name_packet), 0);
+    recv(client->socketfd, &command, sizeof(command), 0);
+
+    if(command == ACK) {
+        successful_name_change(new_name);
+    } else {
+        name_already_exists(new_name);
+    }
 }
