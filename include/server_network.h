@@ -19,6 +19,8 @@ void send_list(struct manager *manager, int index);
 
 void change_name(struct manager *manager, int index);
 
+void process_message(struct manager *manager, int index);
+
 void process_client_request(struct manager *manager, int index);
 
 void server_loop(struct manager *manager, struct sockaddr_in *serveraddr);

@@ -27,3 +27,7 @@ void print_manager_struct(struct manager *manager) {
 void print_heartbeat(const char *name) {
     printf("Heartbeat Received from %s. \n", name);
 }
+
+void unexpected_command(const char *name) {
+    printf("Unexpected Command received from %s \n", name);
+}

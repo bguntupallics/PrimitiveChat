@@ -50,3 +50,25 @@ void successful_name_change(const char *name) {
 void name_already_exists(const char *name) {
     printf("%s already exists. Try another name. \n", name);
 }
+
+void print_message_send_success(void) {
+    printf("Message Sent Successfully. \n");
+}
+
+void print_message_send_failure(void) {
+    printf("Error Sending Message. \n");
+}
+
+void print_user_does_not_exist(const char *name){
+    printf("%s does not exist. Try again. \n", name);
+}
+
+void print_message(struct message_packet message_packet) {
+    if(message_packet.is_echo) {
+        printf("Echo ");
+    } else {
+        printf("Message ");
+    }
+
+    printf("Received From %s -> %s \n", message_packet.sender_name, message_packet.message);
+}

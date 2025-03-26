@@ -13,6 +13,7 @@
 #define ERROR (-1)
 #define MAX_CLIENTS 64
 #define NAME_LENGTH 20
+#define MESSAGE_LENGTH 256
 #define PORT 45556
 #define HEARTBEAT_INTERVAL 5
 
@@ -45,6 +46,13 @@ struct list_packet {
     int num_users;
     int name_lengths[MAX_CLIENTS];
     char user_names[MAX_CLIENTS][NAME_LENGTH];
+};
+
+struct message_packet {
+    int is_echo;
+    char target_name[NAME_LENGTH];
+    char sender_name[NAME_LENGTH];
+    char message[MESSAGE_LENGTH];
 };
 
 struct name_packet {

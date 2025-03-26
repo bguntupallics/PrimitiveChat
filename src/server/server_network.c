@@ -165,6 +165,46 @@ void change_name(struct manager *manager, int index) {
     }
 }
 
+void process_message(struct manager *manager, int index) {
+    enum COMMAND command;
+    struct message_packet message_packet;
+    struct client client = manager->clients[index];
+    int received, sent, target_index = -1, i;
+
+    received = (int) recv(client.socketfd, &message_packet, sizeof(message_packet), 0);
+    if(received < 0) {
+        command = ERROR;
+        send(client.socketfd, &command, sizeof(command), 0);
+        perror("Error receiving message packet from client. \n");
+        return;
+    }
+
+    for(i = 0; i < manager->num_clients; i++) {
+        if(strcmp(manager->clients[i].nickname, message_packet.target_name) == 0) {
+            target_index = i;
+            break;
+        }
+    }
+
+    if(target_index < 0) {
+        command = INVALID;
+        send(client.socketfd, &command, sizeof(command), 0);
+        return;
+    } else {
+        sent = (int) send(manager->clients[target_index].socketfd, &message_packet, sizeof(message_packet), 0);
+
+        if(sent < 0) {
+            command = ERROR;
+            send(client.socketfd, &command, sizeof(command), 0);
+            perror("Error sending message packet to target. \n");
+            return;
+        }
+
+        command = ACK;
+        send(client.socketfd, &command, sizeof(command), 0);
+    }
+}
+
 void update_heartbeat(struct manager *manager, int index) {
     manager->clients[index].last_heartbeat = time(NULL);
     print_heartbeat(manager->clients[index].nickname);
@@ -193,6 +233,11 @@ void process_client_request(struct manager *manager, int index) {
             break;
         case NICKNAME:
             change_name(manager, index);
+            break;
+        case MESSAGE:
+            process_message(manager, index);
+        default:
+            unexpected_command(manager->clients[index].nickname);
             break;
     }
 }

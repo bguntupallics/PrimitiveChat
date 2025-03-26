@@ -94,6 +94,32 @@ void list_users(struct client *client) {
     print_users(&list_packet);
 }
 
+void send_message(struct client *client, int is_echo) {
+    struct message_packet message_packet;
+    enum COMMAND command = MESSAGE;
+    int count;
+
+    strcpy(message_packet.sender_name, client->nickname);
+    count = scanf("%s %[^\n]", message_packet.target_name, message_packet.message);
+    message_packet.is_echo = is_echo;
+    if(count < 0){
+        perror("Error scanning message");
+        return;
+    }
+
+    send(client->socketfd, &command, sizeof(command), 0);
+    send(client->socketfd, &message_packet, sizeof(message_packet), 0);
+    recv(client->socketfd, &command, sizeof(command), 0);
+
+    if(command == ACK) {
+        print_message_send_success();
+    } else if(command == INVALID) {
+        print_user_does_not_exist(message_packet.target_name);
+    } else {
+        print_message_send_failure();
+    }
+}
+
 void change_name(struct client *client) {
     struct name_packet name_packet;
     enum COMMAND command = NICKNAME;
@@ -115,8 +141,21 @@ void change_name(struct client *client) {
     recv(client->socketfd, &command, sizeof(command), 0);
 
     if(command == ACK) {
+        strcpy(client->nickname, new_name);
         successful_name_change(new_name);
     } else {
         name_already_exists(new_name);
     }
+}
+
+void receive_message(struct  client *client) {
+    struct message_packet message_packet;
+    int received;
+
+    received = (int) recv(client->socketfd, &message_packet, sizeof(message_packet), 0);
+    if(received < 0) {
+        perror("receiving message from server. \n");
+    }
+
+    print_message(message_packet);
 }

@@ -15,4 +15,8 @@ void list_users(struct client *client);
 
 void change_name(struct client *client);
 
+void send_message(struct client *client, int is_echo);
+
+void receive_message(struct  client *client);
+
 #endif //PRIMITIVECHAT_CLIENT_NETWORK_H

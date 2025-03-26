@@ -23,4 +23,12 @@ void name_already_exists(const char *name);
 
 void print_users(struct list_packet *listPacket);
 
+void print_message_send_success(void);
+
+void print_message_send_failure(void);
+
+void print_user_does_not_exist(const char *name);
+
+void print_message(struct message_packet message_packet);
+
 #endif //PRIMITIVECHAT_CLIENT_OUTPUTS_H

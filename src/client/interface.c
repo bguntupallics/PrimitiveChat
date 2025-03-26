@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
 #include "global.h"
 #include "interface.h"
 #include "client_outputs.h"
@@ -42,8 +43,9 @@ void parse_command(char *command) {
         list_users(&client);
     } else if(strcmp(command, "nickname") == 0) {
         change_name(&client);
-    }
-    else if(strcmp(command, "leave") == 0) {
+    } else if(strcmp(command, "message")) {
+        send_message(&client, 0);
+    } else if(strcmp(command, "leave") == 0) {
         if(connected){
             disconnect(&client);
         } else {
@@ -52,10 +54,15 @@ void parse_command(char *command) {
     } else {
         invalid_command();
     }
+
+    printf("~ ");
 }
 
 void run(void) {
     char command[2048];
+    fd_set readfds;
+    struct timeval tv;
+    int ret, maxfd;
 
     // Install the SIGINT handler (Ctrl+C)
     if (signal(SIGINT, sigint_handler) == SIG_ERR) {
@@ -73,11 +80,40 @@ void run(void) {
     }
 
     printf("Welcome to Primitive Chat! Type \"help\" for a list of commands ->\n");
+    printf("~ ");
 
     for(;;) {
-        printf("~ ");
-        scanf("%s", command);
-        parse_command(command);
-        memset(&command, 0, strlen(command));
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+        maxfd = STDIN_FILENO;
+
+        if(connected) {
+            FD_SET(client.socketfd, &readfds);
+            if(client.socketfd > STDIN_FILENO){
+                maxfd = client.socketfd;
+            }
+        }
+
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+        fflush(stdout);
+
+        ret = select(maxfd + 1, &readfds, NULL, NULL, &tv);
+
+        if(ret < 0) {
+            perror("select command. \n");
+        } else if(ret == 0) {
+            continue;
+        } else {
+            if(FD_ISSET(STDIN_FILENO, &readfds)) {
+                scanf("%s", command);
+                parse_command(command);
+                memset(&command, 0, strlen(command));
+            }
+
+            if(connected && FD_ISSET(client.socketfd, &readfds)) {
+                receive_message(&client);
+            }
+        }
     }
 }
