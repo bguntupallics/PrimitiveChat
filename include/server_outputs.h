@@ -13,4 +13,6 @@ void print_manager_struct(struct manager *manager);
 
 void print_heartbeat(const char *name);
 
+void unexpected_command(const char *name);
+
 #endif //PRIMITIVECHAT_SERVER_OUTPUTS_H

@@ -16,8 +16,8 @@
 volatile int heartbeat_running = 0;
 pthread_t heartbeat_thread;
 
-// The heartbeat loop function that runs in a separate thread.
-// It sends a "PING" message every HEARTBEAT_INTERVAL seconds.
+// Heartbeat loop function that runs in a separate thread.
+// It sends a HEARTBEAT enum every 5 seconds.
 void *heartbeat_loop(void *arg) {
     struct client *client = (struct client *) arg;
     enum COMMAND heartbeat = HEARTBEAT;
@@ -56,7 +56,7 @@ void connect_to_server(struct client *client, uint8_t *connected) {
     server.sin_family = AF_INET;
 
     connectfd = connect(socketfd, (struct sockaddr *)&server, sizeof(server));
-    if(connectfd != 0){
+    if(connectfd != 0) {
         printf("Connection to server failed. Going back to menu.\n");
         return;
     }
@@ -64,7 +64,7 @@ void connect_to_server(struct client *client, uint8_t *connected) {
 
     send(socketfd, &command, sizeof(command), 0);
     recv(socketfd, &command, sizeof(command), 0);
-    if(command != ACK){
+    if(command != ACK) {
         perror("Error connecting to server. Closing connection. \n");
         close(socketfd);
         return;
@@ -82,4 +82,80 @@ void connect_to_server(struct client *client, uint8_t *connected) {
     if (pthread_create(&heartbeat_thread, NULL, heartbeat_loop, client) != 0) {
         perror("Failed to start heartbeat thread");
     }
+}
+
+void list_users(struct client *client) {
+    struct list_packet list_packet;
+    enum COMMAND command = LIST_USERS;
+
+    send(client->socketfd, &command, sizeof(command), 0);
+    recv(client->socketfd, &list_packet, sizeof(list_packet), 0);
+
+    print_users(&list_packet);
+}
+
+void send_message(struct client *client, int is_echo) {
+    struct message_packet message_packet;
+    enum COMMAND command = MESSAGE;
+    int count;
+
+    strcpy(message_packet.sender_name, client->nickname);
+    count = scanf("%s %[^\n]", message_packet.target_name, message_packet.message);
+    message_packet.is_echo = is_echo;
+    if(count < 0){
+        perror("Error scanning message");
+        return;
+    }
+
+    send(client->socketfd, &command, sizeof(command), 0);
+    send(client->socketfd, &message_packet, sizeof(message_packet), 0);
+    recv(client->socketfd, &command, sizeof(command), 0);
+
+    if(command == ACK) {
+        print_message_send_success();
+    } else if(command == INVALID) {
+        print_user_does_not_exist(message_packet.target_name);
+    } else {
+        print_message_send_failure();
+    }
+}
+
+void change_name(struct client *client) {
+    struct name_packet name_packet;
+    enum COMMAND command = NICKNAME;
+    char new_name[20];
+    int count;
+
+    count = scanf("%s", new_name);
+    if (count != 1) {
+        printf("Error: 'nickname' command requires an argument.\n");
+        return;
+    }
+
+    strcpy(name_packet.name, new_name);
+    name_packet.name_length = strlen(new_name);
+
+    send(client->socketfd, &command, sizeof(command), 0);
+
+    send(client->socketfd, &name_packet, sizeof(name_packet), 0);
+    recv(client->socketfd, &command, sizeof(command), 0);
+
+    if(command == ACK) {
+        strcpy(client->nickname, new_name);
+        successful_name_change(new_name);
+    } else {
+        name_already_exists(new_name);
+    }
+}
+
+void receive_message(struct  client *client) {
+    struct message_packet message_packet;
+    int received;
+
+    received = (int) recv(client->socketfd, &message_packet, sizeof(message_packet), 0);
+    if(received < 0) {
+        perror("receiving message from server. \n");
+    }
+
+    print_message(message_packet);
 }

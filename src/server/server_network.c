@@ -86,14 +86,13 @@ void accept_client(struct manager *manager, struct sockaddr_in *serveraddr) {
     send(new_socket, &command, sizeof(command), 0);
 
     //sending welcome packet with their initial username back to the client
-    welcome_packet.response = NICKNAME;
     snprintf(username, sizeof(username), "user%d", assign_number(manager));
-    strcpy(welcome_packet.name, username);
+    strncpy(welcome_packet.name, username, NAME_LENGTH);
     welcome_packet.name_length = strlen(username);
     send(new_socket, &welcome_packet, sizeof(welcome_packet), 0);
 
     //modifying manager data structure
-    strcpy(manager->clients[manager->num_clients].nickname, username);
+    strncpy(manager->clients[manager->num_clients].nickname, username, NAME_LENGTH);
     manager->clients[manager->num_clients].socketfd = new_socket;
     manager->clients[manager->num_clients].last_heartbeat = time(NULL);
     manager->num_clients = manager->num_clients + 1;
@@ -126,6 +125,86 @@ void remove_client(struct manager *manager, int index) {
     print_manager_struct(manager);
 }
 
+void send_list(struct manager *manager, int index) {
+    struct list_packet toSend;
+    int i;
+
+    toSend.num_users = manager->num_clients;
+    for(i = 0; i < manager->num_clients; i++) {
+        toSend.name_lengths[i] = strlen(manager->clients[i].nickname);
+        strncpy(toSend.user_names[i], manager->clients[i].nickname, NAME_LENGTH);
+    }
+
+    send(manager->clients[index].socketfd, &toSend, sizeof(toSend), 0);
+}
+
+//change name only if the name is not taken
+void change_name(struct manager *manager, int index) {
+    enum COMMAND to_return;
+    struct name_packet name_packet;
+    int i, exists = 0;
+
+    recv(manager->clients[index].socketfd, &name_packet, sizeof(name_packet), 0);
+
+    //first check if name is taken
+    for(i = 0; i < manager->num_clients; i++) {
+        if(strcmp(manager->clients[i].nickname, name_packet.name) == 0) {
+            exists = 1;
+            break;
+        }
+    }
+
+    if(exists) {
+        to_return = INVALID;
+        send(manager->clients[index].socketfd, &to_return, sizeof(to_return), 0);
+    } else {
+        strcpy(manager->clients[index].nickname, name_packet.name);
+
+        to_return = ACK;
+        send(manager->clients[index].socketfd, &to_return, sizeof(to_return), 0);
+    }
+}
+
+void process_message(struct manager *manager, int index) {
+    enum COMMAND command;
+    struct message_packet message_packet;
+    struct client client = manager->clients[index];
+    int received, sent, target_index = -1, i;
+
+    received = (int) recv(client.socketfd, &message_packet, sizeof(message_packet), 0);
+    if(received < 0) {
+        command = ERROR;
+        send(client.socketfd, &command, sizeof(command), 0);
+        perror("Error receiving message packet from client. \n");
+        return;
+    }
+
+    for(i = 0; i < manager->num_clients; i++) {
+        if(strcmp(manager->clients[i].nickname, message_packet.target_name) == 0) {
+            target_index = i;
+            break;
+        }
+    }
+
+    if(target_index < 0) {
+        command = INVALID;
+        send(client.socketfd, &command, sizeof(command), 0);
+        return;
+    } else {
+        sent = (int) send(manager->clients[target_index].socketfd, &message_packet, sizeof(message_packet), 0);
+
+        if(sent < 0) {
+            command = ERROR;
+            send(client.socketfd, &command, sizeof(command), 0);
+            perror("Error sending message packet to target. \n");
+            return;
+        }
+
+        command = ACK;
+        send(client.socketfd, &command, sizeof(command), 0);
+    }
+}
+
 void update_heartbeat(struct manager *manager, int index) {
     manager->clients[index].last_heartbeat = time(NULL);
     print_heartbeat(manager->clients[index].nickname);
@@ -145,8 +224,21 @@ void process_client_request(struct manager *manager, int index) {
     switch(command){
         case DISCONNECT:
             remove_client(manager, index);
+            break;
         case HEARTBEAT:
             update_heartbeat(manager, index);
+            break;
+        case LIST_USERS:
+            send_list(manager, index);
+            break;
+        case NICKNAME:
+            change_name(manager, index);
+            break;
+        case MESSAGE:
+            process_message(manager, index);
+        default:
+            unexpected_command(manager->clients[index].nickname);
+            break;
     }
 }
 
@@ -174,7 +266,7 @@ void server_loop(struct manager *manager, struct sockaddr_in *serveraddr) {
         exit(EXIT_FAILURE);
     }
 
-    for(;;){
+    for(;;) {
         FD_ZERO(&readfds);
 
         maxfd = manager->master_socket;

@@ -13,6 +13,14 @@ void accept_client(struct manager *manager, struct sockaddr_in *serveraddr);
 
 void remove_client(struct manager *manager, int index);
 
+void update_heartbeat(struct manager *manager, int index);
+
+void send_list(struct manager *manager, int index);
+
+void change_name(struct manager *manager, int index);
+
+void process_message(struct manager *manager, int index);
+
 void process_client_request(struct manager *manager, int index);
 
 void server_loop(struct manager *manager, struct sockaddr_in *serveraddr);

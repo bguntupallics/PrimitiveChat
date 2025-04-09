@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "client_outputs.h"
+#include "global.h"
 
 void help(int connected) {
     printf("help <- shows a list of commands. \n");
@@ -29,6 +30,45 @@ void invalid_command(void) {
     printf("Invalid Command. Please Try Again. \n");
 }
 
-void disconnected_from_server(void){
+void disconnected_from_server(void) {
     printf("Disconnected from server. \n");
+}
+
+void print_users(struct list_packet *listPacket) {
+    int i;
+
+    printf("%d Active Users \nUsers: \n", listPacket->num_users);
+    for(i = 0; i < listPacket->num_users; i++) {
+        printf("%s \n", listPacket->user_names[i]);
+    }
+}
+
+void successful_name_change(const char *name) {
+    printf("Successfully changed name to %s. \n", name);
+}
+
+void name_already_exists(const char *name) {
+    printf("%s already exists. Try another name. \n", name);
+}
+
+void print_message_send_success(void) {
+    printf("Message Sent Successfully. \n");
+}
+
+void print_message_send_failure(void) {
+    printf("Error Sending Message. \n");
+}
+
+void print_user_does_not_exist(const char *name){
+    printf("%s does not exist. Try again. \n", name);
+}
+
+void print_message(struct message_packet message_packet) {
+    if(message_packet.is_echo) {
+        printf("Echo ");
+    } else {
+        printf("Message ");
+    }
+
+    printf("Received From %s -> %s \n", message_packet.sender_name, message_packet.message);
 }
