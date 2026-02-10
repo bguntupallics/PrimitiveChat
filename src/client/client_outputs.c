@@ -10,7 +10,8 @@ void help(int connected) {
     if(connected){
         printf("leave <- disconnects from the server. \n");
         printf("message <name> <message> <- sends a message to the user with the provided name. \n");
-        printf("nickname <name> <- Changes your name to the name provided (Limit 256 characters). \n");
+        printf("echo <name> <message> <- sends a message and echoes a copy back to you. \n");
+        printf("nickname <name> <- Changes your name to the name provided (Limit 20 characters). \n");
         printf("list <- lists the other active users connected. \n");
     } else {
         printf("connect <- connects to the server. \n");

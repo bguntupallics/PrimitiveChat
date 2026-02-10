@@ -18,6 +18,7 @@ void sigint_handler(int signum) {
 
     if (connected) {
         disconnect(&client);
+        connected = FALSE;
     }
     close_program();
 }
@@ -25,6 +26,7 @@ void sigint_handler(int signum) {
 void sigpipe_handler(int signum) {
     (void)signum;
 
+    connected = FALSE;
     disconnect(&client);
 }
 
@@ -32,22 +34,46 @@ void parse_command(char *command) {
     if(strcmp(command, "exit") == 0) {
         if(connected){
             disconnect(&client);
+            connected = FALSE;
         }
 
         close_program();
     } else if(strcmp(command, "help") == 0) {
         help(connected);
     } else if(strcmp(command, "connect") == 0) {
-        connect_to_server(&client, &connected);
+        if(!connected) {
+            connect_to_server(&client, &connected);
+        } else {
+            printf("Already connected to a server.\n");
+        }
     } else if(strcmp(command, "list") == 0) {
-        list_users(&client);
+        if(connected) {
+            list_users(&client);
+        } else {
+            printf("Not connected to a server. Use \"connect\" first.\n");
+        }
     } else if(strcmp(command, "nickname") == 0) {
-        change_name(&client);
-    } else if(strcmp(command, "message")) {
-        send_message(&client, 0);
+        if(connected) {
+            change_name(&client);
+        } else {
+            printf("Not connected to a server. Use \"connect\" first.\n");
+        }
+    } else if(strcmp(command, "message") == 0) {
+        if(connected) {
+            send_message(&client, 0);
+        } else {
+            printf("Not connected to a server. Use \"connect\" first.\n");
+        }
+    } else if(strcmp(command, "echo") == 0) {
+        if(connected) {
+            send_message(&client, 1);
+        } else {
+            printf("Not connected to a server. Use \"connect\" first.\n");
+        }
     } else if(strcmp(command, "leave") == 0) {
         if(connected){
             disconnect(&client);
+            connected = FALSE;
         } else {
             cant_leave_when_not_connected();
         }
@@ -106,7 +132,7 @@ void run(void) {
             continue;
         } else {
             if(FD_ISSET(STDIN_FILENO, &readfds)) {
-                scanf("%s", command);
+                scanf("%2047s", command);
                 parse_command(command);
                 memset(&command, 0, strlen(command));
             }

@@ -1,23 +1,33 @@
-CC = gcc
-CFLAGS = -Iinclude -Wall -Wextra -Wpedantic
-SERVERSRC = src/server/server.c src/server/server_network.c src/server/server_outputs.c
-CLIENTSRC = src/client/client.c src/client/interface.c src/client/client_outputs.c src/client/client_network.c
-client = bin/client
-server = bin/server
+CC       = gcc
+CFLAGS   = -Iinclude -Wall -Wextra -Wpedantic
+LDFLAGS  = -lpthread
+
+BINDIR   = bin
+
+SERVER_SRC = src/server/server.c src/server/server_network.c src/server/server_outputs.c
+CLIENT_SRC = src/client/client.c src/client/interface.c src/client/client_outputs.c src/client/client_network.c
+
+SERVER = $(BINDIR)/server
+CLIENT = $(BINDIR)/client
+
+.PHONY: all server client run-server run-client clean
 
 all: server client
 
-client: $(CLIENTSRC)
-	$(CC) $(CFLAGS) $(CLIENTSRC) -o $(client)
+$(BINDIR):
+	mkdir -p $(BINDIR)
 
-server: $(SERVERSRC)
-	$(CC) $(CFLAGS) $(SERVERSRC) -o $(server)
+server: $(BINDIR) $(SERVER_SRC)
+	$(CC) $(CFLAGS) $(SERVER_SRC) -o $(SERVER)
 
-rc: $(client)
-	./bin/client
+client: $(BINDIR) $(CLIENT_SRC)
+	$(CC) $(CFLAGS) $(CLIENT_SRC) $(LDFLAGS) -o $(CLIENT)
 
-rs: $(server)
-	./bin/server
+run-server: server
+	./$(SERVER)
+
+run-client: client
+	./$(CLIENT)
 
 clean:
-	rm -rf bin/*
+	rm -rf $(BINDIR)

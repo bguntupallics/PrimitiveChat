@@ -10,7 +10,6 @@
 
 #define TRUE 1
 #define FALSE 0
-#define ERROR (-1)
 #define MAX_CLIENTS 64
 #define NAME_LENGTH 20
 #define MESSAGE_LENGTH 256
@@ -26,8 +25,8 @@ enum COMMAND {
     LIST_USERS = 0x05,
     NICKNAME = 0x06,
     MESSAGE = 0x07,
-    ECHO = 0x08,
-    INVALID = 0x09,
+    INVALID = 0x08,
+    ERROR_CMD = 0x09,
 };
 
 struct client {

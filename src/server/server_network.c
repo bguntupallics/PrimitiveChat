@@ -16,12 +16,15 @@
 #include "server_outputs.h"
 
 void init(struct manager *manager, struct sockaddr_in *serveraddr) {
-    int socket_fd, bind_fd;
+    int socket_fd, bind_fd, opt = 1;
 
     socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(socket_fd < 0){
         perror("socket()");
+        exit(EXIT_FAILURE);
     }
+
+    setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     serveraddr->sin_addr.s_addr = htonl(INADDR_ANY);
     serveraddr->sin_port = htons(PORT);
@@ -64,14 +67,16 @@ int assign_number(struct manager *manager) {
 }
 
 void accept_client(struct manager *manager, struct sockaddr_in *serveraddr) {
-    int new_socket, received, len;
+    int new_socket, received;
+    (void)serveraddr;
     struct name_packet welcome_packet;
     enum COMMAND command;
     char username[10];
 
-    new_socket = accept(manager->master_socket, (struct sockaddr *)&serveraddr, (socklen_t *)&len);
+    new_socket = accept(manager->master_socket, NULL, NULL);
     if(new_socket < 0){
-        perror("Line 601: accept()");
+        perror("accept()");
+        return;
     }
 
     received = (int) recv(new_socket, &command, sizeof(command), 0);
@@ -158,7 +163,8 @@ void change_name(struct manager *manager, int index) {
         to_return = INVALID;
         send(manager->clients[index].socketfd, &to_return, sizeof(to_return), 0);
     } else {
-        strcpy(manager->clients[index].nickname, name_packet.name);
+        strncpy(manager->clients[index].nickname, name_packet.name, NAME_LENGTH - 1);
+        manager->clients[index].nickname[NAME_LENGTH - 1] = '\0';
 
         to_return = ACK;
         send(manager->clients[index].socketfd, &to_return, sizeof(to_return), 0);
@@ -173,7 +179,7 @@ void process_message(struct manager *manager, int index) {
 
     received = (int) recv(client.socketfd, &message_packet, sizeof(message_packet), 0);
     if(received < 0) {
-        command = ERROR;
+        command = ERROR_CMD;
         send(client.socketfd, &command, sizeof(command), 0);
         perror("Error receiving message packet from client. \n");
         return;
@@ -194,10 +200,14 @@ void process_message(struct manager *manager, int index) {
         sent = (int) send(manager->clients[target_index].socketfd, &message_packet, sizeof(message_packet), 0);
 
         if(sent < 0) {
-            command = ERROR;
+            command = ERROR_CMD;
             send(client.socketfd, &command, sizeof(command), 0);
             perror("Error sending message packet to target. \n");
             return;
+        }
+
+        if(message_packet.is_echo) {
+            send(client.socketfd, &message_packet, sizeof(message_packet), 0);
         }
 
         command = ACK;
@@ -216,9 +226,10 @@ void process_client_request(struct manager *manager, int index) {
     int received;
     
     received = (int) recv(client.socketfd, &command, sizeof(command), 0);
-    if(received < 0){
-        perror("Error receiving command from client");
-        // figure out how to handle this later
+    if(received <= 0){
+        printf("Client \"%s\" disconnected.\n", manager->clients[index].nickname);
+        remove_client(manager, index);
+        return;
     }
 
     switch(command){
@@ -236,6 +247,7 @@ void process_client_request(struct manager *manager, int index) {
             break;
         case MESSAGE:
             process_message(manager, index);
+            break;
         default:
             unexpected_command(manager->clients[index].nickname);
             break;

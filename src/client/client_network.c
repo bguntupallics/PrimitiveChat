@@ -58,6 +58,7 @@ void connect_to_server(struct client *client, uint8_t *connected) {
     connectfd = connect(socketfd, (struct sockaddr *)&server, sizeof(server));
     if(connectfd != 0) {
         printf("Connection to server failed. Going back to menu.\n");
+        close(socketfd);
         return;
     }
     command = CONNECT;
@@ -72,7 +73,8 @@ void connect_to_server(struct client *client, uint8_t *connected) {
         recv(socketfd, &welcome_packet, sizeof(welcome_packet), 0);
     }
 
-    strcpy(client->nickname, welcome_packet.name);
+    strncpy(client->nickname, welcome_packet.name, NAME_LENGTH - 1);
+    client->nickname[NAME_LENGTH - 1] = '\0';
     printf("Connected to Server. Your name is \"%s\"\n", welcome_packet.name);
     *connected = TRUE;
     client->socketfd = socketfd;
@@ -99,8 +101,9 @@ void send_message(struct client *client, int is_echo) {
     enum COMMAND command = MESSAGE;
     int count;
 
-    strcpy(message_packet.sender_name, client->nickname);
-    count = scanf("%s %[^\n]", message_packet.target_name, message_packet.message);
+    strncpy(message_packet.sender_name, client->nickname, NAME_LENGTH - 1);
+    message_packet.sender_name[NAME_LENGTH - 1] = '\0';
+    count = scanf("%19s %255[^\n]", message_packet.target_name, message_packet.message);
     message_packet.is_echo = is_echo;
     if(count < 0){
         perror("Error scanning message");
@@ -126,13 +129,14 @@ void change_name(struct client *client) {
     char new_name[20];
     int count;
 
-    count = scanf("%s", new_name);
+    count = scanf("%19s", new_name);
     if (count != 1) {
         printf("Error: 'nickname' command requires an argument.\n");
         return;
     }
 
-    strcpy(name_packet.name, new_name);
+    strncpy(name_packet.name, new_name, NAME_LENGTH - 1);
+    name_packet.name[NAME_LENGTH - 1] = '\0';
     name_packet.name_length = strlen(new_name);
 
     send(client->socketfd, &command, sizeof(command), 0);
@@ -141,7 +145,8 @@ void change_name(struct client *client) {
     recv(client->socketfd, &command, sizeof(command), 0);
 
     if(command == ACK) {
-        strcpy(client->nickname, new_name);
+        strncpy(client->nickname, new_name, NAME_LENGTH - 1);
+        client->nickname[NAME_LENGTH - 1] = '\0';
         successful_name_change(new_name);
     } else {
         name_already_exists(new_name);
@@ -153,8 +158,9 @@ void receive_message(struct  client *client) {
     int received;
 
     received = (int) recv(client->socketfd, &message_packet, sizeof(message_packet), 0);
-    if(received < 0) {
-        perror("receiving message from server. \n");
+    if(received <= 0) {
+        printf("\nServer disconnected.\n");
+        return;
     }
 
     print_message(message_packet);
